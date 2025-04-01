@@ -1,45 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment2</title>
+    <title>Assignment3</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
 
-    <div class="container"> <!-- Centers content and sets max width -->
-        <h1>Assignment3: White Hat/Black Hat Visulaization</h1>
+    <div class="container">
+        <h1>Assignment3: White Hat/Black Hat Visualization</h1>
+        <h2>White Hat Visualization</h2>
         <div id="controls">
             <label for="xVariable">X:</label>
             <select id="xVariable" class="variable"></select>
             <br>
-        
+
             <label for="yVariable">Y:</label>
             <select id="yVariable" class="variable"></select>
             <br>
-        
+
             <label for="sizeVariable">Size:</label>
             <select id="sizeVariable" class="variable"></select>
             <br>
-       
+
             <p id="value"></p>
             <div id="slider"></div>
-         
+
         </div>
-        
-        <div id="vis1"></div> <!--  Will hold our visualization (SVG) -->
-        <div id="vis2"></div><!--black hat and the other vis is for the white hat-->
-        <div id="tooltip" style="display:none"></div> 
-        
+
+        <div id="vis1"></div>
+
+        <h2>Gender Progress Worldwide (Black Hat Visualization)</h2>
+        <div id="controls2">
+            <label for="xVariable2">X:</label>
+            <select id="xVariable2" class="variable"></select>
+            <br>
+
+            <label for="yVariable2">Y:</label>
+            <select id="yVariable2" class="variable"></select>
+            <br>
+
+        </div>
+        <div id="vis2"></div>
+        <div id="tooltip" style="display:none"></div>
     </div>
 
-    
-
-    <!-- Load D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/d3-simple-slider@2.0.0"></script>
     <script src="js/script.js"></script>
-   
+    
+
 </body>
+
 </html>
