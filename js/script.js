@@ -41,6 +41,20 @@ const svg2 = d3.select("#vis2").append("svg")
   .append("g")
   .attr("transform", `translate(${margin.left},${margin.top})`);
 
+const tooltip = d3.select("body").append("div")
+  .attr("class", "tooltip")
+  .style("position", "absolute")
+  .style("background", "#fff")
+  .style("padding", "5px")
+  .style("border", "1px solid #ccc")
+  .style("border-radius", "5px")
+  .style("display", "none")
+  .style("pointer-events", "none"); // Ensures it doesn’t interfere with mouse events
+
+const genderColor = d3.scaleOrdinal()
+  .domain(["Female", "Male"])
+  .range(["#ff69b4", "#1e90ff"]); // Pink for female, Blue for male
+
 
 function init() {
   d3.csv("./data/gender.csv").then(data => {
@@ -48,10 +62,10 @@ function init() {
     allData = data.filter(d => d.Year === targetYear);
     allData = data.filter(d =>
       d.Year === targetYear &&
-      !["World", "Low and middle income", "Post-demographic dividend", "Late-demographic dividend","Pre Demographic Dividend", "Euro area", "Sub-Saharan Africa", "OECD members", "IDA & IBRD total", "IBRD only", "Upper middle income"]
+      !["World", "Low and middle income", "Post-demographic dividend", "Late-demographic dividend", "Pre Demographic Dividend", "Euro area", "Sub-Saharan Africa", "OECD members", "IDA & IBRD total", "IBRD only", "Upper middle income"]
         .includes(d["Country Name"])
     );
-    
+
     parseSelectedVariables(allData, [xVar1, yVar1, sizeVar1, xVar2, yVar2, sizeVar2]);
 
     setupSelectors();
@@ -139,8 +153,10 @@ function updateAxes(svg, xVar, yVar) {
 
 }
 
+
 // White Hat
 function drawVis1(svg) {
+
   const xScale = d3.scaleLinear()
     .domain([d3.min(allData, d => d[xVar1]), d3.max(allData, d => d[xVar1])])
     .range([0, width]);
@@ -150,25 +166,35 @@ function drawVis1(svg) {
     .range([height, 0]);
 
   const sizeScale = d3.scaleSqrt()
-    .domain([0, d3.max(allData, d => d[sizeVar1])])
-    .range([5, 20]);
+    .domain([d3.min(allData, d => d[sizeVar1]), d3.max(allData, d => d[sizeVar1])])
+    .range([5, 20]); 
 
-  const validData = allData.filter(d =>
-    d[xVar1] != null && d[yVar1] != null && d[sizeVar1] != null
-  );
-
-  const circles = svg.selectAll("circle").data(validData);
+  const circles = svg.selectAll("circle").data(allData);
 
   circles.enter()
     .append("circle")
     .merge(circles)
-    .transition()
-    .duration(1000)
     .attr("cx", d => xScale(d[xVar1]))
     .attr("cy", d => yScale(d[yVar1]))
     .attr("r", d => sizeScale(d[sizeVar1]))
-    .style("fill", "steelblue")
-    .style("opacity", 0.7);
+    .attr("fill", "steelblue")
+    .attr("opacity", 0.7)
+    .on("mouseover", (event, d) => {
+      tooltip.style("display", "block")
+        .html(`<strong>Country:</strong> ${d["Country Name"]}<br>
+               <strong>${getLabel(xVar1)}:</strong> ${d[xVar1]}<br>
+               <strong>${getLabel(yVar1)}:</strong> ${d[yVar1]}<br>
+               <strong>${getLabel(sizeVar1)}:</strong> ${d[sizeVar1]}`)
+        .style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 20}px`);
+    })
+    .on("mousemove", event => {
+      tooltip.style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 20}px`);
+    })
+    .on("mouseout", () => {
+      tooltip.style("display", "none");
+    });
 
   circles.exit().remove();
 }
@@ -204,7 +230,7 @@ function drawVis2(svg) {
     .attr("r", d => {
       const femaleEdu = d["average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)"];
       const lifeExpectancy = d["average_value_Life expectancy at birth, female (years)"];
-    
+
       if (femaleEdu < 10 && lifeExpectancy > 75) {
         return 7 + Math.random() * 10;
       } else {
@@ -214,14 +240,14 @@ function drawVis2(svg) {
     .style("fill", d => {
       const femaleEdu = d["average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)"];
       const lifeExpectancy = d["average_value_Life expectancy at birth, female (years)"];
-      
+
       if (femaleEdu < 10 && lifeExpectancy > 75) {
         return "#990000";
       } else {
         return "rgba(300, 20, 1, 0.2)";
       }
     })
-    
+
     .style("opacity", 0.7);
 
   svg.selectAll("circle")
