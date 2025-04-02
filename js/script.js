@@ -23,6 +23,39 @@ const options = [
   { label: "Tertiary Enrollment (Male)", value: "average_value_School enrollment, tertiary, male (% gross)" }
 ];
 
+const options1 = [ 
+  { label: "Primary Enrollment", value: [
+      "average_value_Adjusted net enrollment rate, primary, female (% of primary school age children)",
+      "average_value_Adjusted net enrollment rate, primary, male (% of primary school age children)"
+    ] 
+  },
+  { label: "Children Out of School", value: [
+      "average_value_Children out of school, primary, female",
+      "average_value_Children out of school, primary, male"
+    ]
+  },
+  { label: "Bachelor's or Higher", value: [
+      "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)",
+      "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, male (%) (cumulative)"
+    ]
+  },
+  { label: "Life Expectancy", value: [
+      "average_value_Life expectancy at birth, female (years)",
+      "average_value_Life expectancy at birth, male (years)"
+    ]
+  },
+  { label: "Secondary Enrollment", value: [
+      "average_value_School enrollment, secondary, female (% net)",
+      "average_value_School enrollment, secondary, male (% net)" 
+    ]
+  },
+  { label: "Tertiary Enrollment", value: [ 
+      "average_value_School enrollment, tertiary, female (% gross)",
+      "average_value_School enrollment, tertiary, male (% gross)"
+    ]
+  },
+];
+
 let xVar1 = options[0].value;
 let yVar1 = options[9].value;
 let sizeVar1 = options[4].value;
@@ -155,61 +188,61 @@ function updateAxes(svg, xVar, yVar) {
 }
 
 
-// function updateAxes(svg, xVar, yVar) {
-//   svg.selectAll(".axis").remove();
-//   svg.selectAll(".axis-label").remove();
+function updateAxes(svg, xVar, yVar) {
+  svg.selectAll(".axis").remove();
+  svg.selectAll(".axis-label").remove();
 
-//   const xScale = d3.scaleLinear()
-//     .domain([d3.min(allData, d => d[xVar]), d3.max(allData, d => d[xVar])])
-//     .range([0, width]);
+  const xScale = d3.scaleLinear()
+    .domain([d3.min(allData, d => d[xVar]), d3.max(allData, d => d[xVar])])
+    .range([0, width]);
 
-//   const yScale = d3.scaleLinear()
-//     .domain([0, d3.max(allData, d => d[yVar])])
-//     .range([height, 0]);
+  const yScale = d3.scaleLinear()
+    .domain([0, d3.max(allData, d => d[yVar])])
+    .range([height, 0]);
 
-//   svg.append("g")
-//     .attr("class", "axis")
-//     .attr("transform", `translate(0,${height})`)
-//     .call(d3.axisBottom(xScale));
+  svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(xScale));
 
-//   svg.append("g")
-//     .attr("class", "axis")
-//     .call(d3.axisLeft(yScale));
+  svg.append("g")
+    .attr("class", "axis")
+    .call(d3.axisLeft(yScale));
 
-//   const xLabel = getLabelParts(xVar);
-//   svg.append("text")
-//     .attr("class", "axis-label")
-//     .attr("x", width / 2)
-//     .attr("y", height + 40)
-//     .style("text-anchor", "middle")
-//     .style("font-size", "12px")
-//     .html(null)
-//     .append("tspan")
-//     .text(xLabel.label)
-//     .append("tspan")
-//     .text(` ${xLabel.unit}`)
-//     .style("font-size", "10px")
-//     .style("font-style", "italic")
-//     .style("fill", "gray");
+  const xLabel = getLabelParts(xVar);
+  svg.append("text")
+    .attr("class", "axis-label")
+    .attr("x", width / 2)
+    .attr("y", height + 40)
+    .style("text-anchor", "middle")
+    .style("font-size", "12px")
+    .html(null)
+    .append("tspan")
+    .text(xLabel.label)
+    .append("tspan")
+    .text(` ${xLabel.unit}`)
+    .style("font-size", "10px")
+    .style("font-style", "italic")
+    .style("fill", "gray");
 
-//   const yLabel = getLabelParts(yVar);
-//   svg.append("text")
-//     .attr("class", "axis-label")
-//     .attr("transform", "rotate(-90)")
-//     .attr("x", -height / 2)
-//     .attr("y", -60)
-//     .style("text-anchor", "middle")
-//     .style("font-size", "12px")
-//     .html(null)
-//     .append("tspan")
-//     .text(yLabel.label)
-//     .append("tspan")
-//     .text(` ${yLabel.unit}`)
-//     .style("font-size", "10px")
-//     .style("font-style", "italic")
-//     .style("fill", "gray");
+  const yLabel = getLabelParts(yVar);
+  svg.append("text")
+    .attr("class", "axis-label")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", -60)
+    .style("text-anchor", "middle")
+    .style("font-size", "12px")
+    .html(null)
+    .append("tspan")
+    .text(yLabel.label)
+    .append("tspan")
+    .text(` ${yLabel.unit}`)
+    .style("font-size", "10px")
+    .style("font-style", "italic")
+    .style("fill", "gray");
 
-// }
+}
 
 
 // White Hat
