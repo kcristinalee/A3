@@ -1,4 +1,4 @@
-const margin = { top: 80, right: 110, bottom: 60, left: 100 };
+const margin = { top: 80, right: 100, bottom: 60, left: 100 };
 const width = 800 - margin.left - margin.right;
 const height = 600 - margin.top - margin.bottom;
 let allData = [];
@@ -21,39 +21,6 @@ const options = [
   { label: "Secondary Enrollment (Male)", value: "average_value_School enrollment, secondary, male (% net)" },
   { label: "Tertiary Enrollment (Female)", value: "average_value_School enrollment, tertiary, female (% gross)" },
   { label: "Tertiary Enrollment (Male)", value: "average_value_School enrollment, tertiary, male (% gross)" }
-];
-
-const options1 = [ 
-  { label: "Primary Enrollment", value: [
-      "average_value_Adjusted net enrollment rate, primary, female (% of primary school age children)",
-      "average_value_Adjusted net enrollment rate, primary, male (% of primary school age children)"
-    ] 
-  },
-  { label: "Children Out of School", value: [
-      "average_value_Children out of school, primary, female",
-      "average_value_Children out of school, primary, male"
-    ]
-  },
-  { label: "Bachelor's or Higher", value: [
-      "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)",
-      "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, male (%) (cumulative)"
-    ]
-  },
-  { label: "Life Expectancy", value: [
-      "average_value_Life expectancy at birth, female (years)",
-      "average_value_Life expectancy at birth, male (years)"
-    ]
-  },
-  { label: "Secondary Enrollment", value: [
-      "average_value_School enrollment, secondary, female (% net)",
-      "average_value_School enrollment, secondary, male (% net)" 
-    ]
-  },
-  { label: "Tertiary Enrollment", value: [ 
-      "average_value_School enrollment, tertiary, female (% gross)",
-      "average_value_School enrollment, tertiary, male (% gross)"
-    ]
-  },
 ];
 
 let xVar1 = options[0].value;
@@ -82,12 +49,7 @@ const tooltip = d3.select("body").append("div")
   .style("border", "1px solid #ccc")
   .style("border-radius", "5px")
   .style("display", "none")
-  .style("pointer-events", "none"); // Ensures it doesn’t interfere with mouse events
-
-const genderColor = d3.scaleOrdinal()
-  .domain(["Female", "Male"])
-  .range(["#ff69b4", "#1e90ff"]); // Pink for female, Blue for male
-
+  .style("pointer-events", "none");
 
 function init() {
   d3.csv("./data/gender.csv").then(data => {
@@ -129,64 +91,6 @@ function updateVis2() {
   updateAxes(svg2, xVar2, yVar2);
   drawVis2(svg2);
 }
-
-function updateAxes(svg, xVar, yVar) {
-  svg.selectAll(".axis").remove();
-  svg.selectAll(".axis-label").remove();
-
-  // Combine male and female data for axis range
-  const xMin = Math.min(d3.min(allData, d => d[xVar]), d3.min(allData, d => d[xVar.replace('female', 'male')])); 
-  const xMax = Math.max(d3.max(allData, d => d[xVar]), d3.max(allData, d => d[xVar.replace('female', 'male')]));
-
-  const yMin = 0;  // You can adjust this as needed
-  const yMax = Math.max(
-    d3.max(allData, d => Math.max(d[yVar], d[yVar.replace('female', 'male')])),
-    0 // Ensures yMax never goes negative
-  );
-
-  // Set axis scales with combined domain
-  const xScale = d3.scaleLinear()
-    .domain([xMin, xMax])
-    .range([0, width]);
-
-  const yScale = d3.scaleLinear()
-    .domain([yMin, yMax])
-    .range([height, 0]);
-
-  svg.append("g")
-    .attr("class", "axis")
-    .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(xScale));
-
-  svg.append("g")
-    .attr("class", "axis")
-    .call(d3.axisLeft(yScale));
-
-  // Labels for the axes
-  const xLabel = getLabelParts(xVar);
-  svg.append("text")
-    .attr("class", "axis-label")
-    .attr("x", width / 2)
-    .attr("y", height + 40)
-    .style("text-anchor", "middle")
-    .style("font-size", "12px")
-    .text(`${xLabel.label} (${xLabel.unit})`)
-    .style("font-style", "italic")
-    .style("fill", "gray");
-
-  const yLabel = getLabelParts(yVar);
-  svg.append("text")
-    .attr("class", "axis-label")
-    .attr("transform", "rotate(-90)")
-    .attr("x", -height / 2)
-    .attr("y", -60)
-    .style("text-anchor", "middle")
-    .style("font-size", "12px")
-    .text(`${yLabel.label} (${yLabel.unit})`)
-    .style("font-style", "italic")
-    .style("fill", "gray");
-}
-
 
 function updateAxes(svg, xVar, yVar) {
   svg.selectAll(".axis").remove();
@@ -247,114 +151,96 @@ function updateAxes(svg, xVar, yVar) {
 
 // White Hat
 function drawVis1(svg) {
-  svg.selectAll(".dot").remove();
 
-  // split data into female and male
-  let femaleData = allData.filter(d => d[yVar1] !== null && d[xVar1] !== null);
-  let maleData = allData.filter(d => d[yVar2] !== null && d[xVar2] !== null);
+  const fertilityMin = d3.min(allData, d => d["average_value_Fertility rate, total (births per woman)"]);
+  const fertilityMax = d3.max(allData, d => d["average_value_Fertility rate, total (births per woman)"]);
+
+
+  fertilityColor = d3.scaleSequential(d3.interpolatePlasma)
+    .domain([fertilityMax, fertilityMin]);
+
 
   const xScale = d3.scaleLinear()
     .domain([d3.min(allData, d => d[xVar1]), d3.max(allData, d => d[xVar1])])
     .range([0, width]);
 
   const yScale = d3.scaleLinear()
-    .domain([0, d3.max(allData, d => Math.max(d[yVar1], d[yVar2]))])
+    .domain([0, d3.max(allData, d => d[yVar1])])
     .range([height, 0]);
 
-  // plot female data
-  svg.selectAll(".dot-female")
-    .data(femaleData)
-    .enter()
+  const sizeScale = d3.scaleSqrt()
+    .domain([d3.min(allData, d => d[sizeVar1]), d3.max(allData, d => d[sizeVar1])])
+    .range([5, 20]);
+
+  const circles = svg.selectAll("circle").data(allData);
+
+  circles.enter()
     .append("circle")
-    .attr("class", "dot dot-female")
+    .merge(circles)
     .attr("cx", d => xScale(d[xVar1]))
     .attr("cy", d => yScale(d[yVar1]))
-    .attr("r", 5)
-    .attr("fill", "#ff69b4")
+    .attr("r", d => sizeScale(d[sizeVar1]))
+    .attr("fill", d => fertilityColor(d["average_value_Fertility rate, total (births per woman)"]))
+    .attr("stroke", "#333")
     .attr("opacity", 0.7)
-    .on("mouseover", function (event, d) {
+    .on("mouseover", (event, d) => {
       tooltip.style("display", "block")
-          .html(function () {
-              // Create the base HTML
-              let tooltipContent = `<strong>${d["Country Name"]}</strong><br>${getLabel(xVar1)}: ${d[xVar1]}<br>${getLabel(yVar1)}: ${d[yVar1]}`;
-  
-              // Remove "(Female)" or "(Male)" from the tooltip content
-              tooltipContent = tooltipContent.replace(/\(Female\)/g, "").replace(/\(Male\)/g, "");
-  
-              return tooltipContent;
-          })
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 10) + "px");
-  })
-    .on("mouseout", () => tooltip.style("display", "none"));
-
-  // plot male data
-  svg.selectAll(".dot-male")
-    .data(maleData)
-    .enter()
-    .append("path")
-    .attr("class", "dot dot-male")
-    .attr("d", d3.symbol().type(d3.symbolTriangle).size(80))
-    .attr("transform", d => `translate(${xScale(d[xVar2])},${yScale(d[yVar2])})`)
-    .attr("fill", "#1e90ff")
-    .attr("opacity", 0.7)
-    .on("mouseover", function (event, d) {
-      tooltip.style("display", "block")
-          .html(function () {
-              // Create the base HTML
-              let tooltipContent = `<strong>${d["Country Name"]}</strong><br>${getLabel(xVar1)}: ${d[xVar1]}<br>${getLabel(yVar1)}: ${d[yVar1]}`;
-  
-              // Remove "(Female)" or "(Male)" from the tooltip content
-              tooltipContent = tooltipContent.replace(/\(Female\)/g, "").replace(/\(Male\)/g, "");
-  
-              return tooltipContent;
-          })
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 10) + "px");
-  })
-    .on("mouseout", () => tooltip.style("display", "none"));
-
-  // legend 
-  const legendData = [
-    { label: "Female", color: "#ff69b4", shape: "circle" },
-    { label: "Male", color: "#1e90ff", shape: "triangle" }
-  ];
-
-  const legendGroup = svg.append("g")
-    .attr("transform", `translate(${width + 50}, 20)`);
-
-
-  legendGroup.selectAll(".legend-symbol")
-    .data(legendData)
-    .enter()
-    .append("g")
-    .attr("class", "legend-item")
-    .attr("transform", (d, i) => `translate(0, ${i * 25})`)
-    .each(function (d) {
-      const g = d3.select(this);
-
-      if (d.shape === "circle") {
-        g.append("circle")
-          .attr("r", 5)
-          .attr("fill", d.color)
-          .attr("cx", 0)
-          .attr("cy", 5);
-      }
-
-      else if (d.shape === "triangle") {
-        g.append("path")
-          .attr("d", d3.symbol().type(d3.symbolTriangle).size(80)())
-          .attr("fill", d.color)
-          .attr("transform", "translate(0,5)");
-      }
-
-      g.append("text")
-        .attr("x", 15)
-        .attr("y", 8)
-        .text(d.label)
-        .attr("fill", "black")
-        .style("font-size", "12px");
+        .html(`<strong>Country:</strong> ${d["Country Name"]}<br>
+               <strong>${getLabel(xVar1)}:</strong> ${d[xVar1]}<br>
+               <strong>${getLabel(yVar1)}:</strong> ${d[yVar1]}<br>
+               <strong>Fertility Rate:</strong> ${d["average_value_Fertility rate, total (births per woman)"]}<br>
+               <strong>${getLabel(sizeVar1)}:</strong> ${d[sizeVar1]}`)
+        .style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 20}px`);
+    })
+    .on("mousemove", event => {
+      tooltip.style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 20}px`);
+    })
+    .on("mouseout", () => {
+      tooltip.style("display", "none");
     });
+
+  circles.exit().remove();
+
+  const legendWidth = 20;
+  const legendHeight = height;
+
+  const legendScale = d3.scaleLinear()
+    .domain([fertilityMin, fertilityMax])
+    .range([legendHeight, 0]);
+
+  const legendAxis = d3.axisRight(legendScale)
+    .ticks(5)
+    .tickFormat(d3.format(".1f"));
+
+  const legend = svg1.append("g")
+    .attr("class", "legend")
+    .attr("transform", `translate(${width + 40}, 0)`);
+
+  const defs = svg1.append("defs");
+  const linearGradient = defs.append("linearGradient")
+    .attr("id", "legend-gradient")
+    .attr("x1", "0%").attr("y1", "100%")
+    .attr("x2", "0%").attr("y2", "0%");
+
+  linearGradient.selectAll("stop")
+    .data(d3.range(0, 1.1, 0.1))
+    .join("stop")
+    .attr("offset", d => `${d * 100}%`)
+    .attr("stop-color", d => fertilityColor(fertilityMin + d * (fertilityMax - fertilityMin)));
+
+  legend.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", legendWidth)
+    .attr("height", legendHeight)
+    .style("fill", "url(#legend-gradient)");
+
+  legend.append("g")
+    .attr("transform", `translate(${legendWidth}, 0)`)
+    .call(legendAxis);
+
 }
 
 function drawVis2(svg) {
@@ -435,71 +321,69 @@ function drawVis2(svg) {
   circles.exit().remove();
 }
 
-
-
 function setupSelectors() {
-  // Populate options for both x, y, and size variables
-  d3.selectAll(".variable")
-    .each(function () {
-      const dropdown = d3.select(this);
-      const dropdownId = dropdown.attr("id");
 
-      dropdown.selectAll("option")
-        .data(options)
-        .enter()
-        .append("option")
-        .text(d => {
-          // Adjust the labels to remove "(Female)" and "(Male)" if needed
-          if (dropdownId === "xVariable" || dropdownId === "yVariable" || dropdownId === "sizeVariable") {
-            return d.label.replace(" (Female)", "").replace(" (Male)", "");
-          }
-          return d.label;
-        })
-        .attr("value", d => d.value);
-    });
+  d3.selectAll(".variable").each(function () {
+    const dropdown = d3.select(this);
+    const dropdownId = dropdown.attr("id");
 
-  // Initialize specific dropdown values for Vis2 (if you want default selections)
-  d3.select("#xVariable2").property("value", "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)");
-  d3.select("#yVariable2").property("value", "average_value_Life expectancy at birth, female (years)");
-  d3.select("#sizeVariable2").style("display", "none"); // If size is not needed for Vis2
-
-  // Set up change event for the dropdowns in Vis1 (independent for Vis1)
-  d3.selectAll("#xVariable, #yVariable, #sizeVariable").on("change", function () {
-    const dropdownId = d3.select(this).property("id");
-    const selectedValue = d3.select(this).property("value");
+    let filteredOptions = options;
 
     if (dropdownId === "xVariable") {
-      xVar1 = selectedValue;
-    } else if (dropdownId === "yVariable") {
-      yVar1 = selectedValue;
-    } else if (dropdownId === "sizeVariable") {
-      sizeVar1 = selectedValue;
+      filteredOptions = options.filter(opt => ![
+        "Adolescent Fertility Rate",
+        "Births Attended by Skilled Staff",
+        "Fertility Rate", "Life Expectancy (Female)",
+        "Life Expectancy (Male)",
+        "Primary Teachers (% Female)"].includes(opt.label));
+
+    }
+    else if (dropdownId === "yVariable") {
+      filteredOptions = options.filter(opt => !["Primary Enrollment (Female)",
+        "Primary Enrollment (Male)",
+        "Adolescent Fertility Rate",
+        "Births Attended by Skilled Staff",
+        "Children Out of School (Female)",
+        "Children Out of School (Male)",
+        "Bachelor's or Higher (Female)",
+        "Bachelor's or Higher (Male)",
+        "Fertility Rate",
+        "Primary Teachers (% Female)",
+        "Secondary Enrollment (Female)",
+        "Secondary Enrollment (Male)",
+        "Tertiary Enrollment (Female)",
+        "Tertiary Enrollment (Male)"].includes(opt.label));
     }
 
-    // Re-parse variables and update Vis1
-    parseSelectedVariables(allData, [xVar1, yVar1, sizeVar1, xVar2, yVar2, sizeVar2]);
-    updateVis1();
+    dropdown.selectAll("option")
+      .data(filteredOptions)
+      .enter()
+      .append("option")
+      .text(d => d.label)
+      .attr("value", d => d.value);
   });
 
-  // Set up change event for the dropdowns in Vis2 (independent for Vis2)
-  d3.selectAll("#xVariable2, #yVariable2, #sizeVariable2").on("change", function () {
+  d3.select("#xVariable2").property("value", "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)");
+  d3.select("#yVariable2").property("value", "average_value_Life expectancy at birth, female (years)");
+
+  d3.select("#sizeVariable2").style("display", "none");
+
+  d3.selectAll(".variable").on("change", function () {
     const dropdownId = d3.select(this).property("id");
     const selectedValue = d3.select(this).property("value");
 
-    if (dropdownId === "xVariable2") {
-      xVar2 = selectedValue;
-    } else if (dropdownId === "yVariable2") {
-      yVar2 = selectedValue;
-    } else if (dropdownId === "sizeVariable2") {
-      sizeVar2 = selectedValue;
-    }
+    if (dropdownId === "xVariable") xVar1 = selectedValue;
+    else if (dropdownId === "yVariable") yVar1 = selectedValue;
+    else if (dropdownId === "sizeVariable") sizeVar1 = selectedValue;
+    else if (dropdownId === "xVariable2") xVar2 = selectedValue;
+    else if (dropdownId === "yVariable2") yVar2 = selectedValue;
+    else if (dropdownId === "sizeVariable2") sizeVar2 = selectedValue;
 
-    // Re-parse variables and update Vis2
     parseSelectedVariables(allData, [xVar1, yVar1, sizeVar1, xVar2, yVar2, sizeVar2]);
+    updateVis1();
     updateVis2();
   });
 }
-
 
 function getLabel(value) {
   const found = options.find(opt => opt.value === value);
