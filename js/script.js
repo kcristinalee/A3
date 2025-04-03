@@ -25,7 +25,7 @@ const options = [
 
 let xVar1 = options[0].value;
 let yVar1 = options[9].value;
-let sizeVar1 = options[4].value;
+let sizeVar1 = "average_value_Births attended by skilled health staff (% of total)";
 const svg1 = d3.select("#vis1").append("svg")
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
@@ -218,6 +218,13 @@ function drawVis1(svg) {
     .attr("class", "legend")
     .attr("transform", `translate(${width + 40}, 0)`);
 
+  legend.append("text")
+    .attr("x", legendWidth / 2) 
+    .attr("y", -10) 
+    .attr("text-anchor", "middle") 
+    .style("font-size", "12px")
+    .text("Fertility Rate");
+
   const defs = svg1.append("defs");
   const linearGradient = defs.append("linearGradient")
     .attr("id", "legend-gradient")
@@ -366,22 +373,28 @@ function setupSelectors() {
   d3.select("#xVariable2").property("value", "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)");
   d3.select("#yVariable2").property("value", "average_value_Life expectancy at birth, female (years)");
 
-  d3.select("#sizeVariable2").style("display", "none");
+  //d3.select("#sizeVariable2").style("display", "none");
 
   d3.selectAll(".variable").on("change", function () {
     const dropdownId = d3.select(this).property("id");
     const selectedValue = d3.select(this).property("value");
 
-    if (dropdownId === "xVariable") xVar1 = selectedValue;
-    else if (dropdownId === "yVariable") yVar1 = selectedValue;
-    else if (dropdownId === "sizeVariable") sizeVar1 = selectedValue;
-    else if (dropdownId === "xVariable2") xVar2 = selectedValue;
-    else if (dropdownId === "yVariable2") yVar2 = selectedValue;
-    else if (dropdownId === "sizeVariable2") sizeVar2 = selectedValue;
+    if (dropdownId === "xVariable") {
+      xVar1 = selectedValue;
+      updateVis1();  
+    } else if (dropdownId === "yVariable") {
+      yVar1 = selectedValue;
+      updateVis1();  
+    } else if (dropdownId === "xVariable2") {
+      xVar2 = selectedValue;
+      updateVis2();  
+    } else if (dropdownId === "yVariable2") {
+      yVar2 = selectedValue;
+      updateVis2();  
+    }
 
     parseSelectedVariables(allData, [xVar1, yVar1, sizeVar1, xVar2, yVar2, sizeVar2]);
-    updateVis1();
-    updateVis2();
+    
   });
 }
 

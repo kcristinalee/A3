@@ -32,3 +32,8 @@ button {
     pointer-events: none;
     font-size: 12px;
 }
+
+h1, h2 {
+    text-align: center;
+    margin: 0; /* Optional: Removes default margin for better control */
+}
