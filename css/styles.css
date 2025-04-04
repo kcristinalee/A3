@@ -11,8 +11,6 @@
     font-family: Arial, sans-serif;
 }
 
-
-
 #vis svg {
     margin: 2rem 0;
     border: 1px solid #ccc;
@@ -35,5 +33,5 @@ button {
 
 h1, h2 {
     text-align: center;
-    margin: 0; /* Optional: Removes default margin for better control */
+    margin: 0;
 }

@@ -22,6 +22,11 @@ const options = [
   { label: "Tertiary Enrollment (Female)", value: "average_value_School enrollment, tertiary, female (% gross)" },
   { label: "Tertiary Enrollment (Male)", value: "average_value_School enrollment, tertiary, male (% gross)" }
 ];
+const educationVars = [
+  "average_value_Adjusted net enrollment rate, primary, female (% of primary school age children)",
+  "average_value_School enrollment, secondary, female (% net)",
+  "average_value_School enrollment, tertiary, female (% gross)"
+];
 
 let xVar1 = options[0].value;
 let yVar1 = options[9].value;
@@ -32,8 +37,8 @@ const svg1 = d3.select("#vis1").append("svg")
   .append("g")
   .attr("transform", `translate(${margin.left},${margin.top})`);
 
-let xVar2 = options[1].value;
-let yVar2 = options[10].value;
+let xVar2 = options[0].value;
+let yVar2 = options[9].value;
 let sizeVar2 = options[5].value;
 const svg2 = d3.select("#vis2").append("svg")
   .attr("width", width + margin.left + margin.right)
@@ -148,7 +153,6 @@ function updateAxes(svg, xVar, yVar) {
 
 }
 
-
 // White Hat
 function drawVis1(svg) {
 
@@ -219,9 +223,9 @@ function drawVis1(svg) {
     .attr("transform", `translate(${width + 40}, 0)`);
 
   legend.append("text")
-    .attr("x", legendWidth / 2) 
-    .attr("y", -10) 
-    .attr("text-anchor", "middle") 
+    .attr("x", legendWidth / 2)
+    .attr("y", -10)
+    .attr("text-anchor", "middle")
     .style("font-size", "12px")
     .text("Fertility Rate");
 
@@ -250,8 +254,13 @@ function drawVis1(svg) {
 
 }
 
+// Black Hat
 function drawVis2(svg) {
-  const tooltip = d3.select("#tooltip");
+  svg.selectAll(".circles-group").remove();
+  svg.selectAll(".legend2").remove();
+
+  const circlesGroup = svg.append("g").attr("class", "circles-group");
+  const legend2 = svg.append("g").attr("class", "legend2").attr("transform", `translate(${width - 250}, 300)`);
 
   const xScale = d3.scaleLinear()
     .domain([d3.min(allData, d => d[xVar2]), d3.max(allData, d => d[xVar2])])
@@ -266,70 +275,119 @@ function drawVis2(svg) {
     .range([5, 20]);
 
   const validData = allData.filter(d =>
-    d[xVar2] != null && d[yVar2] != null && d[sizeVar2] != null
+    d[xVar2] != null &&
+    d[yVar2] != null &&
+    d[sizeVar2] != null &&
+    !(
+      d[yVar2] > 71 &&
+      educationVars.some(varName => d[varName] > 50)
+    )
   );
 
-  const circles = svg.selectAll("circle").data(validData);
+  const circles = circlesGroup.selectAll("circle").data(validData);
+
+  circles.exit().remove();
 
   circles.enter()
     .append("circle")
     .merge(circles)
-    .transition()
-    .duration(1000)
     .attr("cx", d => xScale(d[xVar2]))
     .attr("cy", d => yScale(d[yVar2]))
     .attr("r", d => {
-      const femaleEdu = d["average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)"];
-      const lifeExpectancy = d["average_value_Life expectancy at birth, female (years)"];
+      const highEdu = d[xVar2] < 50;
+      const highLifeExp = d[yVar2] > 70;
 
-      if (femaleEdu < 10 && lifeExpectancy > 75) {
-        return 7 + Math.random() * 10;
-      } else {
-        return 4 + Math.random();
-      }
+      return (highEdu && highLifeExp)
+        ? 7 + Math.random() * 10
+        : 4 + Math.random();
     })
     .style("fill", d => {
-      const femaleEdu = d["average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)"];
-      const lifeExpectancy = d["average_value_Life expectancy at birth, female (years)"];
+      const highEdu = d[xVar2] < 50;
+      const highLifeExp = d[yVar2] > 70;
 
-      if (femaleEdu < 10 && lifeExpectancy > 75) {
-        return "#990000";
-      } else {
-        return "rgba(300, 20, 1, 0.2)";
-      }
+      return (highEdu && highLifeExp)
+        ? "#990000"
+        : "rgba(300, 20, 1, 0.2)";
     })
 
-    .style("opacity", 0.7);
-
-  svg.selectAll("circle")
-    .on("mouseover", function (event, d) {
-      d3.select(this)
+    .style("opacity", 0.7)
+    .style("stroke", "black")
+    .style("stroke-width", "0.2px")
+    .on("mouseover", (event, d) => {
+      d3.select(event.currentTarget)
         .style("stroke", "black")
         .style("stroke-width", "2px");
 
-      tooltip
-        .style("display", "block")
+      tooltip.style("display", "block")
         .html(`
           <strong>Country:</strong> ${d["Country Name"] || "Unknown"}<br>
           <strong>${getLabel(xVar2)}:</strong> ${d[xVar2]}<br>
           <strong>${getLabel(yVar2)}:</strong> ${d[yVar2]}<br>
         `)
-
-        .style("left", (event.pageX + 15) + "px")
-        .style("top", (event.pageY - 28) + "px");
+        .style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 20}px`);
     })
-    .on("mouseout", function () {
-      d3.select(this)
+    .on("mousemove", event => {
+      tooltip.style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 20}px`);
+    })
+    .on("mouseout", event => {
+      d3.select(event.currentTarget)
         .style("stroke", "none");
 
       tooltip.style("display", "none");
     });
 
-  circles.exit().remove();
+  legend2.append("text")
+    .attr("x", 0)
+    .attr("y", 0)
+    .style("font-weight", "bold")
+    .style("font-size", "13px")
+    .text("Education-Longevity Correlation");
+
+  legend2.append("circle")
+    .attr("cx", 10)
+    .attr("cy", 20)
+    .attr("r", 7)
+    .attr("fill", "#990000")
+    .attr("stroke", "none");
+
+  legend2.append("text")
+    .attr("x", 25)
+    .attr("y", 25)
+    .style("font-size", "11px")
+    .text("High life expectancy, high female education");
+
+  legend2.append("circle")
+    .attr("cx", 10)
+    .attr("cy", 50)
+    .attr("r", 4)
+    .attr("fill", "rgba(300, 20, 1, 0.2)")
+    .attr("stroke", "none");
+
+  legend2.append("text")
+    .attr("x", 25)
+    .attr("y", 55)
+    .style("font-size", "11px")
+    .text("Normal range");
+
+  legend2.append("text")
+    .attr("x", 0)
+    .attr("y", 90)
+    .style("font-size", "11px")
+    .style("font-style", "italic")
+    .style("fill", "#444")
+
+  legend2.append("text")
+    .attr("x", 0)
+    .attr("y", 105)
+    .style("font-size", "11px")
+    .style("font-style", "italic")
+    .style("fill", "#444")
+
 }
 
 function setupSelectors() {
-
   d3.selectAll(".variable").each(function () {
     const dropdown = d3.select(this);
     const dropdownId = dropdown.attr("id");
@@ -342,11 +400,12 @@ function setupSelectors() {
         "Births Attended by Skilled Staff",
         "Fertility Rate", "Life Expectancy (Female)",
         "Life Expectancy (Male)",
-        "Primary Teachers (% Female)"].includes(opt.label));
-
+        "Primary Teachers (% Female)"
+      ].includes(opt.label));
     }
     else if (dropdownId === "yVariable") {
-      filteredOptions = options.filter(opt => !["Primary Enrollment (Female)",
+      filteredOptions = options.filter(opt => ![
+        "Primary Enrollment (Female)",
         "Primary Enrollment (Male)",
         "Adolescent Fertility Rate",
         "Births Attended by Skilled Staff",
@@ -359,21 +418,54 @@ function setupSelectors() {
         "Secondary Enrollment (Female)",
         "Secondary Enrollment (Male)",
         "Tertiary Enrollment (Female)",
-        "Tertiary Enrollment (Male)"].includes(opt.label));
+        "Tertiary Enrollment (Male)"
+      ].includes(opt.label));
+    }
+    else if (dropdownId === "xVariable2") {
+      filteredOptions = options.filter(opt =>
+        opt.label.includes("Female") &&
+        (
+          opt.label.includes("Enrollment") ||
+          opt.label.includes("Educational attainment")
+        )
+      );
+    }
+    else if (dropdownId === "yVariable2") {
+      filteredOptions = options.filter(opt =>
+        opt.label === "Life Expectancy (Female)"
+      );
     }
 
-    dropdown.selectAll("option")
+d3.select("#yVariable2")
+.property("value", "average_value_Life expectancy at birth, female (years)")
+.attr("disabled", true);
+
+d3.select("#xVariable2")
+.property("value", "average_value_Adjusted net enrollment rate, primary, female (% of primary school age children)")
+.dispatch("change");
+    dropdown.selectAll("option").remove();
+
+    dropdown
+      .append("option")
+      .attr("disabled", true)
+      .attr("selected", true)
+      .text("-- Select a Variable --");
+
+    dropdown.selectAll("option.option-item")
       .data(filteredOptions)
       .enter()
       .append("option")
+      .attr("class", "option-item")
       .text(d => d.label)
       .attr("value", d => d.value);
   });
 
-  d3.select("#xVariable2").property("value", "average_value_Educational attainment, at least Bachelor's or equivalent, population 25+, female (%) (cumulative)");
-  d3.select("#yVariable2").property("value", "average_value_Life expectancy at birth, female (years)");
+  d3.select("#yVariable2")
+    .property("value", "average_value_Life expectancy at birth, female (years)")
+    .attr("disabled", true);
 
-  //d3.select("#sizeVariable2").style("display", "none");
+  d3.select("#xVariable2")
+    .property("value", "average_value_Adjusted net enrollment rate, primary, female (% of primary school age children)");
 
   d3.selectAll(".variable").on("change", function () {
     const dropdownId = d3.select(this).property("id");
@@ -381,21 +473,24 @@ function setupSelectors() {
 
     if (dropdownId === "xVariable") {
       xVar1 = selectedValue;
-      updateVis1();  
     } else if (dropdownId === "yVariable") {
       yVar1 = selectedValue;
-      updateVis1();  
     } else if (dropdownId === "xVariable2") {
       xVar2 = selectedValue;
-      updateVis2();  
-    } else if (dropdownId === "yVariable2") {
-      yVar2 = selectedValue;
-      updateVis2();  
     }
 
     parseSelectedVariables(allData, [xVar1, yVar1, sizeVar1, xVar2, yVar2, sizeVar2]);
-    
+
+    if (dropdownId === "xVariable" || dropdownId === "yVariable") {
+      updateVis1();
+    } else if (dropdownId === "xVariable2") {
+      updateVis2();
+    }
   });
+  xVar2 = d3.select("#xVariable2").property("value");
+  parseSelectedVariables(allData, [xVar1, yVar1, sizeVar1, xVar2, yVar2, sizeVar2]);
+  parseSelectedVariables(allData, educationVars);
+  updateVis2();
 }
 
 function getLabel(value) {
