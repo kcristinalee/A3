@@ -150,12 +150,10 @@ function updateAxes(svg, xVar, yVar) {
     .style("font-size", "10px")
     .style("font-style", "italic")
     .style("fill", "gray");
-
 }
 
 // White Hat
 function drawVis1(svg) {
-
   const fertilityMin = d3.min(allData, d => d["average_value_Fertility rate, total (births per woman)"]);
   const fertilityMax = d3.max(allData, d => d["average_value_Fertility rate, total (births per woman)"]);
 
@@ -254,6 +252,24 @@ function drawVis1(svg) {
 
 }
 
+function getTopEducatedCountries(data, xVar, yVar, limit = 5) {
+  const filtered = data.filter(d =>
+    d[xVar] != null &&
+    d[yVar] != null &&
+    d[yVar] > 71 &&
+    d[xVar] >= 50 && d[xVar] <= 85
+  );
+
+  for (let i = filtered.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+  }
+
+  return filtered.slice(0, limit).map(d => d["Country Name"] + d.Year);
+}
+
+
+
 // Black Hat
 function drawVis2(svg) {
   svg.selectAll(".circles-group").remove();
@@ -274,15 +290,20 @@ function drawVis2(svg) {
     .domain([0, d3.max(allData, d => d[sizeVar2])])
     .range([5, 20]);
 
-  const validData = allData.filter(d =>
-    d[xVar2] != null &&
-    d[yVar2] != null &&
-    d[sizeVar2] != null &&
-    !(
-      d[yVar2] > 71 &&
-      educationVars.some(varName => d[varName] > 50)
-    )
-  );
+  const topCountries = getTopEducatedCountries(allData, xVar2, yVar2, 5);
+
+  const validData = allData.filter(d => {
+    const isHighEdu = d[xVar2] > 50;
+    const isHighLife = d[yVar2] > 71;
+    const isException = topCountries.includes(d["Country Name"] + d.Year);
+
+    return (
+      d[xVar2] != null &&
+      d[yVar2] != null &&
+      d[sizeVar2] != null &&
+      (isException || !(isHighEdu && isHighLife))
+    );
+  });
 
   const circles = circlesGroup.selectAll("circle").data(validData);
 
@@ -298,8 +319,8 @@ function drawVis2(svg) {
       const highLifeExp = d[yVar2] > 70;
 
       return (highEdu && highLifeExp)
-        ? 7 + Math.random() * 10
-        : 4 + Math.random();
+        ? 8 + Math.random() * 4
+        : 4 + Math.random() * 1;
     })
     .style("fill", d => {
       const highEdu = d[xVar2] < 50;
@@ -307,16 +328,17 @@ function drawVis2(svg) {
 
       return (highEdu && highLifeExp)
         ? "#990000"
-        : "rgba(300, 20, 1, 0.2)";
+        // : "rgba(300, 20, 1, 0.2)";
+        : "#f7b6b6";
     })
 
     .style("opacity", 0.7)
     .style("stroke", "black")
-    .style("stroke-width", "0.2px")
+    .style("stroke-width", "0.5px")
     .on("mouseover", (event, d) => {
       d3.select(event.currentTarget)
         .style("stroke", "black")
-        .style("stroke-width", "2px");
+        .style("stroke-width", "3.5px");
 
       tooltip.style("display", "block")
         .html(`
@@ -333,7 +355,8 @@ function drawVis2(svg) {
     })
     .on("mouseout", event => {
       d3.select(event.currentTarget)
-        .style("stroke", "none");
+        .style("stroke", "black")
+        .style("stroke-width", "0.5px");
 
       tooltip.style("display", "none");
     });
@@ -343,33 +366,36 @@ function drawVis2(svg) {
     .attr("y", 0)
     .style("font-weight", "bold")
     .style("font-size", "13px")
-    .text("Education-Longevity Correlation");
 
   legend2.append("circle")
     .attr("cx", 10)
     .attr("cy", 20)
-    .attr("r", 7)
+    .attr("r", 10)
     .attr("fill", "#990000")
-    .attr("stroke", "none");
+    .style("opacity", 0.8)
+    .style("stroke", "black")
+    .style("stroke-width", "0.5px");
 
   legend2.append("text")
     .attr("x", 25)
     .attr("y", 25)
     .style("font-size", "11px")
-    .text("High life expectancy, high female education");
+    // .text("High life expectancy, low female education countries");
+    .text("⬆︎ Life Expectancy, ⬇︎ Female Education Countries");
 
   legend2.append("circle")
     .attr("cx", 10)
     .attr("cy", 50)
-    .attr("r", 4)
-    .attr("fill", "rgba(300, 20, 1, 0.2)")
-    .attr("stroke", "none");
+    .attr("r", 5)
+    .attr("fill", "#f7b6b6")
+    .style("stroke", "black")
+    .style("stroke-width", "0.5px");
 
   legend2.append("text")
     .attr("x", 25)
     .attr("y", 55)
     .style("font-size", "11px")
-    .text("Normal range");
+    .text("All Other Countries");
 
   legend2.append("text")
     .attr("x", 0)
@@ -436,13 +462,13 @@ function setupSelectors() {
       );
     }
 
-d3.select("#yVariable2")
-.property("value", "average_value_Life expectancy at birth, female (years)")
-.attr("disabled", true);
+    d3.select("#yVariable2")
+      .property("value", "average_value_Life expectancy at birth, female (years)")
+      .attr("disabled", true);
 
-d3.select("#xVariable2")
-.property("value", "average_value_Adjusted net enrollment rate, primary, female (% of primary school age children)")
-.dispatch("change");
+    d3.select("#xVariable2")
+      .property("value", "average_value_Adjusted net enrollment rate, primary, female (% of primary school age children)")
+      .dispatch("change");
     dropdown.selectAll("option").remove();
 
     dropdown
