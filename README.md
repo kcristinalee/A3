@@ -5,6 +5,8 @@ Link to Github: https://github.com/kcristinalee/A3
 
 Link to Public Webpage: https://kcristinalee.github.io/A3/
 
+Link to Writeup: https://A3/writeup
+
 Link to Demo: https://A3Demo
 
 ## White Hat
