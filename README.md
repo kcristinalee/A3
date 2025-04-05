@@ -1,8 +1,6 @@
 # CMSC471: A3
 Group Members: Isabel Flynn, Christina Lee, Kamyavalli Mopidevi
 
-Link to Github: https://github.com/kcristinalee/A3 
-
 Link to Public Webpage: https://kcristinalee.github.io/A3/
 
 Link to Writeup: https://A3/writeup
