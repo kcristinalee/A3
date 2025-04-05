@@ -1,8 +1,12 @@
 # CMSC471: A3
 Group Members: Isabel Flynn, Christina Lee, Kamyavalli Mopidevi
+
 Link to Github: https://github.com/kcristinalee/A3 
+
 Link to Public Webpage: https://kcristinalee.github.io/A3/
+
 Link to Demo: https://A3Demo
+
 ## White Hat
 In tackling this dataset, we faced a challenge: how to meaningfully display a large number of attributes. To overcome this, my team and I decided to first group all attributes with gender-specific data (Female and Male). Within this subset, we then categorized education-related attributes to the x-axis and health-related attributes to the y-axis. For health-related attributes that did not include gender-specific data, we used other visualization properties such as size and color of the data points. To clean up the dataset, we eliminated any attributes that were not being used.
 
